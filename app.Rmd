@@ -1,0 +1,180 @@
+
+```{r warning = FALSE, message = FALSE}
+library(shiny)
+library(shinydashboard)
+library(DT)
+library(ggplot2)
+library(dplyr)
+
+ui <- dashboardPage(
+  dashboardHeader(title = "D4T4 V1S in RShiny"),
+  
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Homepage", tabName = "hp", icon = icon("home")),
+      menuItem("Import Dataset", tabName = "i", icon = icon("arrow-circle-up")),
+      menuItem("Filter Dataset", tabName = "f", icon = icon("filter")),
+      menuItem("Plots", tabName = "p", icon = icon("chart-area"))
+    )
+  ),
+  
+  dashboardBody(
+    tabItems(
+     tabItem(tabName = "hp", 
+             column(width = 12,
+             h3("Welcome to D4T4 V1S in R Shiny, an introductory application
+                designed to accelerate the process of synthesizing reports
+                and visualizations about data in easy-to-understand graphics
+                and explanations."),
+             h3("The additional tabs in the menu will direct users to the 
+                functionality within this appliaction."),
+             
+             h2("To-Do: "),
+             h4("Import w/ File Input. (Completed at basic level.)"),
+             h4("Scrollable Visualization w/ DT, formattable (Completed)"),
+             h4("Dynamic Filtering (Doing now...ish)"),
+             h4("Univariate and Bivariate Plots w/ ggplot2"),
+             h4("Markov Chain Matrix widget"),
+             h4("Strikezone Plots for Contact, Progression, by Pitch Type"),
+             h4("Include Other Project Functions Datasets can be run through."),
+             h4("Exports and Saves for Images, Charts, etc. --> Prep. of LaTeX report?")
+          ) 
+      ), 
+     
+     tabItem(tabName = "i", 
+             column(width = 6, 
+                    textOutput("fileIO_1"),
+                    checkboxInput("header1", "Header in File?", TRUE),
+                    
+                    fileInput("infile1", "Choose .csv File", 
+                              accept = c(".csv"))
+                    )
+             ,
+             column(width = 12, 
+                    h2("View File Output: "),
+                    DT::dataTableOutput("infile1_dt"), 
+                    style = "height:350px; overflow-y: scroll;overflow-x: scroll;")
+             ),
+     
+     tabItem(tabName = "f", 
+             textOutput("filter_msg"),
+             textOutput("d_in_use"),
+             
+             h2("Select Filter Variables:"),
+             h3("Pitch Types"),
+             selectInput("pt_filter_var", "Select X Variable: ",
+                         choices = NULL),
+             
+             h3("Hard/Soft Contact & Swing-With-Miss"),
+             selectInput("c_swm_filter_var", "Select Y Variable: ", 
+                         choices = NULL),
+             
+             h2("Pitch Type Filtering: "),
+             uiOutput("pt_filter"),
+             
+             h2("Hard/Soft Contact Filtering: "),
+             h4("Note: Make sure the imported dataset has been run through the 
+                swingMatrixStates.R function."),
+             uiOutput("c_swm_filter")
+             ),
+     
+     tabItem(tabName = "p", 
+             h4("Plot widget for creating univariate and bivariate plots. Select the variable(s) needed, pay attention to their types, and then choose the plot from the Plot dropdown."),
+             h3("Use Filters?"),
+             checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = FALSE),
+             textOutput("ptVec"),
+             checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = FALSE),
+             selectInput("plot_dropdown", "Select Plot Type: ", 
+                         c("Scatterplot" = "point",
+                           "Histogram" = "hist", 
+                           "Barplot" = "bar",
+                           "2-D Bin Plot" = "bin2d",
+                           "Density/Violin Plot" = "violin")),
+             selectInput("plot_x", "Select X Variable: ",
+                         choices = NULL),
+             selectInput("plot_y", "Select Y Variable: ", 
+                         choices = NULL),
+             plotOutput("plot1")
+             )
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  
+  values <- reactiveValues(table1 = NULL,
+                           plotChoice = NULL)
+  
+  data <- reactive({
+    if1 = input$infile1
+    if (is.null(if1)) {
+      return(NULL)
+    }
+    
+    df <- read.csv(if1$datapath, header = input$header1)
+    
+    updateSelectInput(session, "pt_filter_var", choices = names(df))
+    updateSelectInput(session, "c_swm_filter_var", choices = names(df))    
+    updateSelectInput(session, "plot_x", choices = names(df))
+    updateSelectInput(session, "plot_y", choices = names(df))
+    
+    return(df)
+  })
+  
+  output$fileIO_1 <- renderText({
+    "Import a .csv file here for use with the included widgets."
+  })
+  
+  output$filter_msg <- renderText({
+    "Filter widget for working with datasets. Add unique filters as you think of them, 
+     or as they fit your needs."
+  })
+
+  output$d_in_use <- renderText({
+    paste("File In Use: ", input$infile1$name)
+  })
+  
+  output$pt_filter <- renderUI({
+    ptChoices <-  unique(data()[,colnames(data()) == input$pt_filter_var])
+    checkboxGroupInput("pt_filter","Select Pitch Type(s): ", choices = ptChoices)
+  })
+  
+  output$c_swm_filter <- renderUI({
+    contactChoices <- unique(data()[,colnames(data()) == input$c_swm_filter_var])
+    checkboxGroupInput("c_swm_filter", "Select Contact State(s): ", choices = contactChoices)
+  })
+  
+  output$infile1_dt <- renderDataTable({
+    
+  DT::datatable(data.frame(data()), 
+                options = list(paging = FALSE,
+                               scrollX = TRUE, 
+                               scrollY = "375px")
+      )
+    }
+  )
+  
+  values$plotChoice <- reactive({
+    input$plot_dropdown
+  })
+  
+  output$plot1 <- renderPlot({
+    # finally updates correctly :p
+    # need to add filter functionality
+    df = data()
+    
+    if (input$pt_filter_bool) {
+      df = df %>% filter(df[,colnames(data()) == input$pt_filter_var] %in% input$pt_filter)
+    }
+    if (input$c_swm_filter_bool) {
+      df = df %>% filter(df[,colnames(data()) == input$c_swm_filter_var] %in% input$c_swm_filter)
+    }
+    
+    ggplot(data = df, aes_string(x = input$plot_x, y = input$plot_y)) + geom_point()
+  })
+}
+
+shinyApp(ui, server)
+```
+
+
