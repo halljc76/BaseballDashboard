@@ -62,11 +62,11 @@ ui <- dashboardPage(
              
              h2("Select Filter Variables:"),
              h3("Pitch Types"),
-             selectInput("pt_filter_var", "Select X Variable: ",
+             selectInput("pt_filter_var", "Select \"Pitch Type\" Variable: ",
                          choices = NULL),
              
              h3("Hard/Soft Contact & Swing-With-Miss"),
-             selectInput("c_swm_filter_var", "Select Y Variable: ", 
+             selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ", 
                          choices = NULL),
              
              h2("Pitch Type Filtering: "),
@@ -80,22 +80,36 @@ ui <- dashboardPage(
      
      tabItem(tabName = "p", 
              h4("Plot widget for creating univariate and bivariate plots. Select the variable(s) needed, pay attention to their types, and then choose the plot from the Plot dropdown."),
+             
+             fluidRow(
+               column(3,
              h3("Use Filters?"),
              checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = FALSE),
-             textOutput("ptVec"),
              checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = FALSE),
-             selectInput("plot_dropdown", "Select Plot Type: ", 
-                         c("Scatterplot" = "point",
-                           "Histogram" = "hist", 
-                           "Barplot" = "bar",
-                           "2-D Bin Plot" = "bin2d",
-                           "Density/Violin Plot" = "violin")),
-             selectInput("plot_x", "Select X Variable: ",
-                         choices = NULL),
-             selectInput("plot_y", "Select Y Variable: ", 
-                         choices = NULL),
-             plotOutput("plot1")
-             )
+              ),
+             column(3,
+               selectInput("plot_dropdown", "Select Plot Type: ", 
+                           c("Scatterplot" = "point",
+                             "Histogram" = "hist", 
+                             "Barplot" = "bar",
+                             "2-D Bin Plot" = "bin2d",
+                             "Density/Violin Plot" = "violin")),
+               textInput("plot_filename", "Plot Filename: ", placeholder = "Test1.png"),
+               actionButton("plot_save", "Save Plot as .png", icon = icon("file-export"))
+               ),
+             column(3,
+               selectInput("plot_x", "Select X Variable: ",
+                           choices = NULL),
+               selectInput("plot_y", "Select Y Variable: ", 
+                           choices = NULL)
+              ),
+             column(3,
+                    textInput("plot_title", "Plot Title: ", placeholder = "No title given."),
+                    textInput("plot_caption", "Plot Caption: ", placeholder = "No caption given.")),
+          
+          plotOutput("plot1")
+        )
+      )
     )
   )
 )
@@ -154,13 +168,9 @@ server <- function(input, output, session) {
     }
   )
   
-  values$plotChoice <- reactive({
-    input$plot_dropdown
-  })
+  
   
   output$plot1 <- renderPlot({
-    # finally updates correctly :p
-    # need to add filter functionality
     df = data()
     
     if (input$pt_filter_bool) {
@@ -170,7 +180,32 @@ server <- function(input, output, session) {
       df = df %>% filter(df[,colnames(data()) == input$c_swm_filter_var] %in% input$c_swm_filter)
     }
     
-    ggplot(data = df, aes_string(x = input$plot_x, y = input$plot_y)) + geom_point()
+    gg <- NULL
+    
+    if (input$plot_dropdown == "point") {
+      gg <- ggplot(data = df, aes_string(x = input$plot_x, y = input$plot_y)) + geom_point()
+    }
+    else if (input$plot_dropdown == "hist") {
+      gg <- ggplot(data = df, aes_string(x = input$plot_x)) + geom_histogram()
+    }
+    else if (input$plot_dropdown == "bar") {
+      gg <- ggplot(data = df, aes_string(x = input$plot_x)) + geom_bar(stat = "count") 
+    }
+    else if (input$plot_dropdown == "bin2d") {
+      gg <- ggplot(data = df, aes_string(x = input$plot_x, y = input$plot_y)) + geom_bin2d()
+    }
+    else {
+      gg <- ggplot(data = df, aes_string(x = input$plot_x, y = input$plot_y)) + geom_violin()
+    }
+    
+    gg <- gg + labs(title = input$plot_title, 
+                    caption = input$plot_caption)
+    
+    return(gg)
+  })
+  
+  observeEvent(input$plot_save, {
+    ggsave(input$plot_filename, width = 20, units = "cm")
   })
 }
 
