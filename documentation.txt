@@ -1,0 +1,6 @@
+March 7
+- Created git/Github repository with capability of pushing to/pulling from repo
+- Allowed for selectivity of variables representing pitch types, contacts
+- Added basic filter functionality for pitch types, contacts to scatterplot creation
+
+
