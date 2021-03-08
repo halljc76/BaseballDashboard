@@ -4,9 +4,17 @@ March 7
 - Added basic filter functionality for pitch types, contacts to scatterplot creation
 
 - Implemented all five of the ggplot types (errors indicate statistical malpractice)
-- Added save functionality with custom titles, captions
+- Added save/export functionality with custom titles, captions (see Test1.png for ex.)
 
-// To-Do: Remove C+/C-/SWM column --> Include Function that does this and make THAT
-          what creates this variable (if not present already).
-          
+// Scraped Data -> Engineered Data Pipeline, Part 1 //
+- Given an unmodified file (i.e., that which has been scraped):
+- Functions implemented to create IDs and Contact States from USER-SPECIFIED VARIABLES
+  - Fixed overwrite issue where two buttons would undo the other's work
+- Added export to .csv for the added columns so that users did not have to repeat steps, 
+  if unnecessary 
+  
+// To-Do: Implement Markov Transition Matrix function(s) from Project, give Tab for this
+// To-Do: Include FILTER BY PLAYER option --> have this automatically update other filters
+// To-Do: Create custom ggplot theme that can be a signature of created plots w/in app
+
 

@@ -5,6 +5,9 @@ library(shinydashboard)
 library(DT)
 library(ggplot2)
 library(dplyr)
+library(Jmisc)
+
+sourceAll("./Functions")
 
 ui <- dashboardPage(
   dashboardHeader(title = "D4T4 V1S in RShiny"),
@@ -13,6 +16,7 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Homepage", tabName = "hp", icon = icon("home")),
       menuItem("Import Dataset", tabName = "i", icon = icon("arrow-circle-up")),
+      menuItem("Edit Dataset", tabName = "e", icon = icon("pencil-ruler")),
       menuItem("Filter Dataset", tabName = "f", icon = icon("filter")),
       menuItem("Plots", tabName = "p", icon = icon("chart-area"))
     )
@@ -56,6 +60,42 @@ ui <- dashboardPage(
                     style = "height:350px; overflow-y: scroll;overflow-x: scroll;")
              ),
      
+     tabItem(tabName = "e",
+             textOutput("edit_msg"),
+             
+             h3("Specify Required Variables: "),
+             
+             fluidRow(
+               column(width = 4,
+             selectInput("date_var", "Select \"Date\" Variable: ",
+                         choices = NULL),
+             selectInput("events_var", "Select \"Events\" Variable (e.g., Single, Double, Groundout, etc.): ", choices = NULL),
+             selectInput("description_var", "Select \"Description\" Variable (e.g., swinging-strike, hit, etc.): ", choices = NULL)
+               ),
+             column(width = 4, offset = 1,
+             selectInput("away_team_var", "Select \"Away Team\" Variable: ",
+                         choices = NULL),
+             selectInput("home_team_var", "Select \"Home Team\" Variable: ",
+                         choices = NULL),
+             selectInput("launch_speed_var", "Select \"Launch Speed (Exit Velo)\" Variable", choices = NULL)
+                )
+             ),
+             fluidRow(
+               column(width = 10,
+                      actionButton("id_create", "Create IDs", icon = icon("asymmetrik")),
+                      actionButton("swing_matrix_create", "Create Contact & Swing Matrix Vars", icon = icon("bolt"))
+               )
+             ),
+             fluidRow(
+               column(width = 10,
+                      textInput("exp_filename", "Filename to Save: ", placeholder = "export1.csv"),
+                      actionButton("edited_table_save", "Export Table to .csv", icon = icon("share-alt"))
+               )
+             ),
+             
+             dataTableOutput("edited_table")
+     ),
+     
      tabItem(tabName = "f", 
              textOutput("filter_msg"),
              textOutput("d_in_use"),
@@ -66,7 +106,7 @@ ui <- dashboardPage(
                          choices = NULL),
              
              h3("Hard/Soft Contact & Swing-With-Miss"),
-             selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ", 
+             selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ",
                          choices = NULL),
              
              h2("Pitch Type Filtering: "),
@@ -117,7 +157,8 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   
   values <- reactiveValues(table1 = NULL,
-                           plotChoice = NULL)
+                           plotChoice = NULL,
+                           df = NULL)
   
   data <- reactive({
     if1 = input$infile1
@@ -132,7 +173,70 @@ server <- function(input, output, session) {
     updateSelectInput(session, "plot_x", choices = names(df))
     updateSelectInput(session, "plot_y", choices = names(df))
     
+    updateSelectInput(session, "date_var", choices = names(df))
+    updateSelectInput(session, "home_team_var", choices = names(df))    
+    updateSelectInput(session, "away_team_var", choices = names(df))
+    updateSelectInput(session, "events_var", choices = names(df))
+    updateSelectInput(session, "description_var", choices = names(df))
+    updateSelectInput(session, "launch_speed_var", choices = names(df))
+    
     return(df)
+  })
+  
+  output$edit_msg <- renderText({
+    "Tab for using included functions to add categorical variables that aid in the
+    creation of Markov Chain Models, Transition Matrices, plots w/ discrete axes, etc."
+  })
+  
+  observeEvent(input$id_create, {
+    d = NULL
+    
+    if (is.null(values$df)) {
+      d = data()
+    }
+    else {
+      d = values$df
+    }
+    
+    values$df = idCreator(d, 
+              d[,colnames(d) == input$date_var],
+              d[,colnames(d) == input$home_team_var],
+              d[,colnames(d) == input$away_team_var],
+              d[,colnames(d) == input$events_var])
+    
+    updateSelectInput(session, "pt_filter_var", choices = names(values$df))
+    updateSelectInput(session, "c_swm_filter_var", choices = names(values$df))    
+    updateSelectInput(session, "plot_x", choices = names(values$df))
+    updateSelectInput(session, "plot_y", choices = names(values$df))
+  })
+  
+  observeEvent(input$swing_matrix_create, {
+    d = NULL
+    
+    if (is.null(values$df)) {
+      d = data()
+    }
+    else {
+      d = values$df
+    }
+    
+    values$df = swingMatrixStates(d, 
+                              d[,colnames(d) == input$launch_speed_var],
+                              d[,colnames(d) == input$description_var],
+                              d[,colnames(d) == input$pt_filter_var],
+                              90.0, 1.0)
+  })
+  
+  observeEvent(input$edited_table_save, {
+    write.csv(values$df, input$exp_filename)
+  })
+  
+  output$edited_table = renderDataTable({
+    
+    DT::datatable(data.frame(values$df),
+                  options = list(paging = FALSE,
+                               scrollX = TRUE, 
+                               scrollY = "375px"))
   })
   
   output$fileIO_1 <- renderText({
@@ -149,12 +253,12 @@ server <- function(input, output, session) {
   })
   
   output$pt_filter <- renderUI({
-    ptChoices <-  unique(data()[,colnames(data()) == input$pt_filter_var])
+    ptChoices <-  unique(values$df[,colnames(values$df) == input$pt_filter_var])
     checkboxGroupInput("pt_filter","Select Pitch Type(s): ", choices = ptChoices)
   })
   
   output$c_swm_filter <- renderUI({
-    contactChoices <- unique(data()[,colnames(data()) == input$c_swm_filter_var])
+    contactChoices <- unique(values$df[,colnames(values$df) == input$c_swm_filter_var])
     checkboxGroupInput("c_swm_filter", "Select Contact State(s): ", choices = contactChoices)
   })
   
@@ -174,10 +278,10 @@ server <- function(input, output, session) {
     df = data()
     
     if (input$pt_filter_bool) {
-      df = df %>% filter(df[,colnames(data()) == input$pt_filter_var] %in% input$pt_filter)
+      df = df %>% filter(df[,colnames(values$df) == input$pt_filter_var] %in% input$pt_filter)
     }
     if (input$c_swm_filter_bool) {
-      df = df %>% filter(df[,colnames(data()) == input$c_swm_filter_var] %in% input$c_swm_filter)
+      df = df %>% filter(df[,colnames(values$df) == input$c_swm_filter_var] %in% input$c_swm_filter)
     }
     
     gg <- NULL
