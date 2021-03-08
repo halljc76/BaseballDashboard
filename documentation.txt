@@ -17,4 +17,8 @@ March 7
 // To-Do: Include FILTER BY PLAYER option --> have this automatically update other filters
 // To-Do: Create custom ggplot theme that can be a signature of created plots w/in app
 
+March 8
+- Fixed bug where "un-edited" dataset (i.e., changes done externally from application)
+  would not elicit response from filter.
+
 

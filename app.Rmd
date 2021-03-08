@@ -253,6 +253,10 @@ server <- function(input, output, session) {
   })
   
   output$pt_filter <- renderUI({
+    if (is.null(values$df)) {
+      values$df = data()
+    }
+    
     ptChoices <-  unique(values$df[,colnames(values$df) == input$pt_filter_var])
     checkboxGroupInput("pt_filter","Select Pitch Type(s): ", choices = ptChoices)
   })
