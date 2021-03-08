@@ -101,6 +101,8 @@ ui <- dashboardPage(
              textOutput("d_in_use"),
              
              h2("Select Filter Variables:"),
+             
+             sidebarPanel(
              h3("Pitch Types"),
              selectInput("pt_filter_var", "Select \"Pitch Type\" Variable: ",
                          choices = NULL),
@@ -109,14 +111,19 @@ ui <- dashboardPage(
              selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ",
                          choices = NULL),
              
-             h2("Pitch Type Filtering: "),
-             uiOutput("pt_filter"),
              
-             h2("Hard/Soft Contact Filtering: "),
-             h4("Note: Make sure the imported dataset has been run through the 
-                swingMatrixStates.R function."),
-             uiOutput("c_swm_filter")
              ),
+             
+             mainPanel(
+               h2("Pitch Type Filtering: "),
+               uiOutput("pt_filter"),
+               
+               h2("Hard/Soft Contact Filtering: "),
+               h4("Note: Make sure the imported dataset has been run through the 
+                  swingMatrixStates.R function."),
+               uiOutput("c_swm_filter")
+             )
+     ),
      
      tabItem(tabName = "p", 
              h4("Plot widget for creating univariate and bivariate plots. Select the variable(s) needed, pay attention to their types, and then choose the plot from the Plot dropdown."),
@@ -124,8 +131,8 @@ ui <- dashboardPage(
              fluidRow(
                column(3,
              h3("Use Filters?"),
-             checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = FALSE),
-             checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = FALSE),
+             checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = TRUE),
+             checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = TRUE),
               ),
              column(3,
                selectInput("plot_dropdown", "Select Plot Type: ", 
@@ -258,12 +265,14 @@ server <- function(input, output, session) {
     }
     
     ptChoices <-  unique(values$df[,colnames(values$df) == input$pt_filter_var])
-    checkboxGroupInput("pt_filter","Select Pitch Type(s): ", choices = ptChoices)
+    checkboxGroupInput("pt_filter","Select Pitch Type(s): ", choices = ptChoices,
+                       selected = ptChoices)
   })
   
   output$c_swm_filter <- renderUI({
     contactChoices <- unique(values$df[,colnames(values$df) == input$c_swm_filter_var])
-    checkboxGroupInput("c_swm_filter", "Select Contact State(s): ", choices = contactChoices)
+    checkboxGroupInput("c_swm_filter", "Select Contact State(s): ", choices = contactChoices,
+                       selected = contactChoices)
   })
   
   output$infile1_dt <- renderDataTable({

@@ -20,5 +20,10 @@ March 7
 March 8
 - Fixed bug where "un-edited" dataset (i.e., changes done externally from application)
   would not elicit response from filter.
+  
+- Fixed bug where changed filter had defaulted to False values, meaning that if no
+  specification occurred w.r.t. filters, plots would show as empty if the filters were checked.
+- In tandem with the above item, switched filters to default value of TRUE, as it does not change anything if the user de-selects them -- only causes change when the filter itself is changed.
 
-
+// To-Do: To remove dependency on Jmisc package for sourcing from Functions folder, make a PACKAGE that contains all of the included functions, with documentation. 
+(see https://tinyheero.github.io/jekyll/update/2015/07/26/making-your-first-R-package.html)
