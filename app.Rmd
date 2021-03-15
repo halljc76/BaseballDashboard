@@ -1,11 +1,16 @@
 
 ```{r warning = FALSE, message = FALSE}
+options(shiny.maxRequestSize = 30*1024^2)
+
 library(shiny)
 library(shinydashboard)
 library(DT)
 library(ggplot2)
 library(dplyr)
 library(Jmisc)
+library(msm)
+library(gt)
+library(leaflet)
 
 sourceAll("./Functions")
 
@@ -18,7 +23,8 @@ ui <- dashboardPage(
       menuItem("Import Dataset", tabName = "i", icon = icon("arrow-circle-up")),
       menuItem("Edit Dataset", tabName = "e", icon = icon("pencil-ruler")),
       menuItem("Filter Dataset", tabName = "f", icon = icon("filter")),
-      menuItem("Plots", tabName = "p", icon = icon("chart-area"))
+      menuItem("Plots", tabName = "p", icon = icon("chart-area")),
+      menuItem("Markov Matrices", tabName = "mm", icon = icon("border-none"))
     )
   ),
   
@@ -156,6 +162,19 @@ ui <- dashboardPage(
           
           plotOutput("plot1")
         )
+      ),
+     
+  tabItem(tabName = "mm",
+          textOutput("markov_msg"),
+          h4("Decide what variable represents the foundation of the model (i.e. what is 
+             shifting and changing from observation to observation?"),
+          selectInput("markov_states_var", "Select \"State\" Variable: ",
+                         choices = NULL),
+          h4("Decide what variable divides between cases, such as an ID that signals a new 
+             at-bat."),
+          selectInput("markov_divider_var", "Select \"Divider\" Variable: ",
+                         choices = NULL),
+          gt_output("markov1")
       )
     )
   )
@@ -187,6 +206,9 @@ server <- function(input, output, session) {
     updateSelectInput(session, "description_var", choices = names(df))
     updateSelectInput(session, "launch_speed_var", choices = names(df))
     
+    updateSelectInput(session, "markov_states_var", choices = names(df))
+    updateSelectInput(session, "markov_divider_var", choices = names(df))
+    
     return(df)
   })
   
@@ -212,7 +234,7 @@ server <- function(input, output, session) {
               d[,colnames(d) == input$events_var])
     
     updateSelectInput(session, "pt_filter_var", choices = names(values$df))
-    updateSelectInput(session, "c_swm_filter_var", choices = names(values$df))    
+    updateSelectInput(session, "c_swm_filter_var", choices = names(values$df)) 
     updateSelectInput(session, "plot_x", choices = names(values$df))
     updateSelectInput(session, "plot_y", choices = names(values$df))
   })
@@ -270,6 +292,9 @@ server <- function(input, output, session) {
   })
   
   output$c_swm_filter <- renderUI({
+    if (is.null(values$df)) {
+      values$df = data()
+    }
     contactChoices <- unique(values$df[,colnames(values$df) == input$c_swm_filter_var])
     checkboxGroupInput("c_swm_filter", "Select Contact State(s): ", choices = contactChoices,
                        selected = contactChoices)
@@ -324,6 +349,21 @@ server <- function(input, output, session) {
   observeEvent(input$plot_save, {
     ggsave(input$plot_filename, width = 20, units = "cm")
   })
+  
+  output$markov1 <- render_gt({
+    
+    if (is.null(values$df)) {
+      values$df = data()
+    }
+    
+    stateVar <- values$df[,colnames(values$df) == input$markov_states_var]
+    dividerVar <- values$df[,colnames(values$df) == input$markov_divider_var]
+    
+    m1 <- markovTransitionMatrix(values$df, statesVar = stateVar, dividerVar = dividerVar, 
+                           precision = 3, filenameToSave = "givingAFilename.html")
+    m1$table
+  })
+  
 }
 
 shinyApp(ui, server)
