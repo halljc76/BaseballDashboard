@@ -30,156 +30,181 @@ ui <- dashboardPage(
   
   dashboardBody(
     tabItems(
-     tabItem(tabName = "hp", 
-             column(width = 12,
-             h3("Welcome to D4T4 V1S in R Shiny, an introductory application
+      tabItem(tabName = "hp", 
+              column(width = 12,
+                     h3("Welcome to D4T4 V1S in R Shiny, an introductory application
                 designed to accelerate the process of synthesizing reports
                 and visualizations about data in easy-to-understand graphics
                 and explanations."),
-             h3("The additional tabs in the menu will direct users to the 
+                h3("The additional tabs in the menu will direct users to the 
                 functionality within this appliaction."),
-             
-             h2("To-Do: "),
-             h4("Import w/ File Input. (Completed at basic level.)"),
-             h4("Scrollable Visualization w/ DT, formattable (Completed)"),
-             h4("Dynamic Filtering (Doing now...ish)"),
-             h4("Univariate and Bivariate Plots w/ ggplot2"),
-             h4("Markov Chain Matrix widget"),
-             h4("Strikezone Plots for Contact, Progression, by Pitch Type"),
-             h4("Include Other Project Functions Datasets can be run through."),
-             h4("Exports and Saves for Images, Charts, etc. --> Prep. of LaTeX report?")
-          ) 
+                h3("Note: This application may appear odd on some computers with respect to 
+                   orientation; monitors and such may have a different resolution than computers
+                   and thus may disorient some of the graphics. As these are discovered, user-defined 
+                   settings will be included to make the UI more user-friendly."),
+                
+                h2("To-Do: "),
+                h4("Import w/ File Input. (Completed at basic level.)"),
+                h4("Scrollable Visualization w/ DT, formattable (Completed)"),
+                h4("Dynamic Filtering (Doing now...ish)"),
+                h4("Univariate and Bivariate Plots w/ ggplot2"),
+                h4("Markov Chain Matrix widget"),
+                h4("Strikezone Plots for Contact, Progression, by Pitch Type"),
+                h4("Include Other Project Functions Datasets can be run through."),
+                h4("Exports and Saves for Images, Charts, etc. --> Prep. of LaTeX report?")
+              ) 
       ), 
-     
-     tabItem(tabName = "i", 
-             column(width = 6, 
-                    textOutput("fileIO_1"),
-                    checkboxInput("header1", "Header in File?", TRUE),
-                    
-                    fileInput("infile1", "Choose .csv File", 
-                              accept = c(".csv"))
-                    )
-             ,
-             column(width = 12, 
-                    h2("View File Output: "),
-                    DT::dataTableOutput("infile1_dt"), 
-                    style = "height:350px; overflow-y: scroll;overflow-x: scroll;")
-             ),
-     
-     tabItem(tabName = "e",
-             textOutput("edit_msg"),
-             
-             h3("Specify Required Variables: "),
-             
-             fluidRow(
-               column(width = 4,
-             selectInput("date_var", "Select \"Date\" Variable: ",
-                         choices = NULL),
-             selectInput("events_var", "Select \"Events\" Variable (e.g., Single, Double, Groundout, etc.): ", choices = NULL),
-             selectInput("description_var", "Select \"Description\" Variable (e.g., swinging-strike, hit, etc.): ", choices = NULL)
-               ),
-             column(width = 4, offset = 1,
-             selectInput("away_team_var", "Select \"Away Team\" Variable: ",
-                         choices = NULL),
-             selectInput("home_team_var", "Select \"Home Team\" Variable: ",
-                         choices = NULL),
-             selectInput("launch_speed_var", "Select \"Launch Speed (Exit Velo)\" Variable", choices = NULL)
-                )
-             ),
-             fluidRow(
-               column(width = 10,
-                      actionButton("id_create", "Create IDs", icon = icon("asymmetrik")),
-                      actionButton("swing_matrix_create", "Create Contact & Swing Matrix Vars", icon = icon("bolt"))
-               )
-             ),
-             fluidRow(
-               column(width = 10,
-                      textInput("exp_filename", "Filename to Save: ", placeholder = "export1.csv"),
-                      actionButton("edited_table_save", "Export Table to .csv", icon = icon("share-alt"))
-               )
-             ),
-             
-             dataTableOutput("edited_table")
-     ),
-     
-     tabItem(tabName = "f", 
-             textOutput("filter_msg"),
-             textOutput("d_in_use"),
-             
-             h2("Select Filter Variables:"),
-             
-             sidebarPanel(
-             h3("Pitch Types"),
-             selectInput("pt_filter_var", "Select \"Pitch Type\" Variable: ",
-                         choices = NULL),
-             
-             h3("Hard/Soft Contact & Swing-With-Miss"),
-             selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ",
-                         choices = NULL),
-             
-             
-             ),
-             
-             mainPanel(
-               h2("Pitch Type Filtering: "),
-               uiOutput("pt_filter"),
-               
-               h2("Hard/Soft Contact Filtering: "),
-               h4("Note: Make sure the imported dataset has been run through the 
-                  swingMatrixStates.R function."),
-               uiOutput("c_swm_filter")
-             )
-     ),
-     
-     tabItem(tabName = "p", 
-             h4("Plot widget for creating univariate and bivariate plots. Select the variable(s) needed, pay attention to their types, and then choose the plot from the Plot dropdown."),
-             
-             fluidRow(
-               column(3,
-             h3("Use Filters?"),
-             checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = TRUE),
-             checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = TRUE),
-              ),
-             column(3,
-               selectInput("plot_dropdown", "Select Plot Type: ", 
-                           c("Scatterplot" = "point",
-                             "Histogram" = "hist", 
-                             "Barplot" = "bar",
-                             "2-D Bin Plot" = "bin2d",
-                             "Density/Violin Plot" = "violin")),
-               textInput("plot_filename", "Plot Filename: ", placeholder = "Test1.png"),
-               actionButton("plot_save", "Save Plot as .png", icon = icon("file-export"))
-               ),
-             column(3,
-               selectInput("plot_x", "Select X Variable: ",
-                           choices = NULL),
-               selectInput("plot_y", "Select Y Variable: ", 
-                           choices = NULL)
-              ),
-             column(3,
-                    textInput("plot_title", "Plot Title: ", placeholder = "No title given."),
-                    textInput("plot_caption", "Plot Caption: ", placeholder = "No caption given.")),
-          
-          plotOutput("plot1")
-        )
+      
+      tabItem(tabName = "i", 
+              column(width = 6, 
+                     textOutput("fileIO_1"),
+                     checkboxInput("header1", "Header in File?", TRUE),
+                     
+                     fileInput("infile1", "Choose .csv File", 
+                               accept = c(".csv"))
+              )
+              ,
+              column(width = 12, 
+                     h2("View File Output: "),
+                     DT::dataTableOutput("infile1_dt"), 
+                     style = "height:350px; overflow-y: scroll;overflow-x: scroll;")
       ),
-     
-  tabItem(tabName = "mm",
-          textOutput("markov_msg"),
-          h4("Decide what variable represents the foundation of the model (i.e. what is 
+      
+      tabItem(tabName = "e",
+              textOutput("edit_msg"),
+              
+              h3("Specify Required Variables: "),
+              
+              fluidRow(
+                column(width = 4,
+                       selectInput("date_var", "Select \"Date\" Variable: ",
+                                   choices = NULL),
+                       selectInput("events_var", "Select \"Events\" Variable (e.g., Single, Double, Groundout, etc.): ", choices = NULL),
+                       selectInput("description_var", "Select \"Description\" Variable (e.g., swinging-strike, hit, etc.): ", choices = NULL)
+                ),
+                column(width = 4, offset = 1,
+                       selectInput("away_team_var", "Select \"Away Team\" Variable: ",
+                                   choices = NULL),
+                       selectInput("home_team_var", "Select \"Home Team\" Variable: ",
+                                   choices = NULL),
+                       selectInput("launch_speed_var", "Select \"Launch Speed (Exit Velo)\" Variable", choices = NULL)
+                )
+              ),
+              fluidRow(
+                column(width = 10,
+                       actionButton("id_create", "Create IDs", icon = icon("asymmetrik")),
+                       actionButton("swing_matrix_create", "Create Contact & Swing Matrix Vars", icon = icon("bolt"))
+                )
+              ),
+              fluidRow(
+                column(width = 10,
+                       textInput("exp_filename", "Filename to Save: ", placeholder = "export1.csv"),
+                       actionButton("edited_table_save", "Export Table to .csv", icon = icon("share-alt"))
+                )
+              ),
+              
+              dataTableOutput("edited_table")
+      ),
+      
+      tabItem(tabName = "f", 
+              textOutput("filter_msg"),
+              textOutput("d_in_use"),
+              
+              h2("Select Filter Variables:"),
+              
+              sidebarPanel(
+                h3("Pitch Types"),
+                selectInput("pt_filter_var", "Select \"Pitch Type\" Variable: ",
+                            choices = NULL),
+                
+                h3("Hard/Soft Contact & Swing-With-Miss"),
+                selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ",
+                            choices = NULL),
+                
+                
+              ),
+              
+              mainPanel(
+                h2("Pitch Type Filtering: "),
+                uiOutput("pt_filter"),
+                
+                h2("Hard/Soft Contact Filtering: "),
+                h4("Note: Make sure the imported dataset has been run through the 
+                  swingMatrixStates.R function."),
+                uiOutput("c_swm_filter")
+              )
+      ),
+      
+      tabItem(tabName = "p", 
+              h4("Plot widget for creating univariate and bivariate plots. Select the variable(s) needed, pay attention to their types, and then choose the plot from the Plot dropdown."),
+              
+              fluidRow(
+                column(3,
+                       h3("Use Filters?"),
+                       checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = TRUE),
+                       checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = TRUE),
+                ),
+                column(3,
+                       selectInput("plot_dropdown", "Select Plot Type: ", 
+                                   c("Scatterplot" = "point",
+                                     "Histogram" = "hist", 
+                                     "Barplot" = "bar",
+                                     "2-D Bin Plot" = "bin2d",
+                                     "Density/Violin Plot" = "violin")),
+                       textInput("plot_filename", "Plot Filename: ", placeholder = "Test1.png"),
+                       actionButton("plot_save", "Save Plot as .png", icon = icon("file-export"))
+                ),
+                column(3,
+                       selectInput("plot_x", "Select X Variable: ",
+                                   choices = NULL),
+                       selectInput("plot_y", "Select Y Variable: ", 
+                                   choices = NULL)
+                ),
+                column(3,
+                       textInput("plot_title", "Plot Title: ", placeholder = "No title given."),
+                       textInput("plot_caption", "Plot Caption: ", placeholder = "No caption given.")),
+                
+                
+                
+                
+                
+                plotOutput("plot1")
+              )
+      ),
+      
+      tabItem(tabName = "mm",
+              textOutput("markov_msg"),
+              
+              sidebarLayout(
+                sidebarPanel = sidebarPanel(
+                  tabsetPanel(
+                    tabPanel(
+                      "Variables",
+                      h4("Decide what variable represents the foundation of the model (i.e. what is 
              shifting and changing from observation to observation?"),
-          selectInput("markov_states_var", "Select \"State\" Variable: ",
+             selectInput("markov_states_var", "Select \"State\" Variable: ",
                          choices = NULL),
-          h4("Decide what variable divides between cases, such as an ID that signals a new 
-             at-bat."),
-          selectInput("markov_divider_var", "Select \"Divider\" Variable: ",
+             h4("Decide what variable divides between cases, such as an ID that signals a new 
+               at-bat."),
+             selectInput("markov_divider_var", "Select \"Divider\" Variable: ",
                          choices = NULL),
-          textInput("markov_title", "Title: ", value = "Markov Transition Matrix"),
-          textInput("markov_subtitle", "Subtitle: ", value = "More Specific Info Here"),
-          textInput("markov_caption", "Caption: ", value = "Key for Abbreviations Here"),
-          textInput("markov_outfile", "Filename to Save (.html): ", value = "myMarkov1.html"),
-          actionButton("markov_save", "Save Table as .html", icon = icon("file-export")),
-          gt_output("markov1")
+                    ),
+             
+             tabPanel(
+               "Descriptors",
+               textInput("markov_title", "Title: ", value = "Markov Transition Matrix"),
+               textInput("markov_subtitle", "Subtitle: ", value = "More Specific Info Here"),
+               textInput("markov_caption", "Caption: ", value = "Key for Abbreviations Here"),
+               textInput("markov_outfile", "Filename to Save (.html): ", value = "myMarkov1.html"),
+               actionButton("markov_save", "Save Table as .html", icon = icon("file-export"))
+             )
+                  )
+                ),
+             
+             mainPanel = mainPanel(
+               gt_output("markov1")
+             )
+        )
       )
     )
   )
@@ -234,10 +259,10 @@ server <- function(input, output, session) {
     }
     
     values$df = idCreator(d, 
-              d[,colnames(d) == input$date_var],
-              d[,colnames(d) == input$home_team_var],
-              d[,colnames(d) == input$away_team_var],
-              d[,colnames(d) == input$events_var])
+                          d[,colnames(d) == input$date_var],
+                          d[,colnames(d) == input$home_team_var],
+                          d[,colnames(d) == input$away_team_var],
+                          d[,colnames(d) == input$events_var])
     
     updateSelectInput(session, "pt_filter_var", choices = names(values$df))
     updateSelectInput(session, "c_swm_filter_var", choices = names(values$df)) 
@@ -256,10 +281,10 @@ server <- function(input, output, session) {
     }
     
     values$df = swingMatrixStates(d, 
-                              d[,colnames(d) == input$launch_speed_var],
-                              d[,colnames(d) == input$description_var],
-                              d[,colnames(d) == input$pt_filter_var],
-                              90.0, 1.0)
+                                  d[,colnames(d) == input$launch_speed_var],
+                                  d[,colnames(d) == input$description_var],
+                                  d[,colnames(d) == input$pt_filter_var],
+                                  90.0, 1.0)
   })
   
   observeEvent(input$edited_table_save, {
@@ -270,8 +295,8 @@ server <- function(input, output, session) {
     
     DT::datatable(data.frame(values$df),
                   options = list(paging = FALSE,
-                               scrollX = TRUE, 
-                               scrollY = "375px"))
+                                 scrollX = TRUE, 
+                                 scrollY = "375px"))
   })
   
   output$fileIO_1 <- renderText({
@@ -282,7 +307,7 @@ server <- function(input, output, session) {
     "Filter widget for working with datasets. Add unique filters as you think of them, 
      or as they fit your needs."
   })
-
+  
   output$d_in_use <- renderText({
     paste("File In Use: ", input$infile1$name)
   })
@@ -308,12 +333,12 @@ server <- function(input, output, session) {
   
   output$infile1_dt <- renderDataTable({
     
-  DT::datatable(data.frame(data()), 
-                options = list(paging = FALSE,
-                               scrollX = TRUE, 
-                               scrollY = "375px")
-      )
-    }
+    DT::datatable(data.frame(data()), 
+                  options = list(paging = FALSE,
+                                 scrollX = TRUE, 
+                                 scrollY = "375px")
+    )
+  }
   )
   
   
@@ -366,15 +391,18 @@ server <- function(input, output, session) {
     dividerVar <- values$df[,colnames(values$df) == input$markov_divider_var]
     
     m1 <- markovTransitionMatrix(values$df, statesVar = stateVar, dividerVar = dividerVar, 
-                           precision = 3,
-                           titleString = input$markov_title, 
-                           subtitleString = input$markov_subtitle, 
-                           captionString = input$markov_caption, 
-                           filenameToSave = input$markov_outfile)
+                                 precision = 3,
+                                 titleString = input$markov_title, 
+                                 subtitleString = input$markov_subtitle, 
+                                 captionString = input$markov_caption, 
+                                 filenameToSave = input$markov_outfile)
     values$markov = m1$table
     m1$table
     
-  })
+  },
+  height = px(1200),
+  width = px(1200)
+  )
   
   observeEvent(input$markov_save, {
     fn = ""
@@ -387,7 +415,7 @@ server <- function(input, output, session) {
     if (is.null(values$markov)) {
       return()
     }
-    gtsave(values$markov, fn)
+    saveMatrix(values$markov, input$markov_outfile)
   })
   
 }
