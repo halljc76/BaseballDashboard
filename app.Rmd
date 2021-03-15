@@ -174,6 +174,11 @@ ui <- dashboardPage(
              at-bat."),
           selectInput("markov_divider_var", "Select \"Divider\" Variable: ",
                          choices = NULL),
+          textInput("markov_title", "Title: ", value = "Markov Transition Matrix"),
+          textInput("markov_subtitle", "Subtitle: ", value = "More Specific Info Here"),
+          textInput("markov_caption", "Caption: ", value = "Key for Abbreviations Here"),
+          textInput("markov_outfile", "Filename to Save (.html): ", value = "myMarkov1.html"),
+          actionButton("markov_save", "Save Table as .html", icon = icon("file-export")),
           gt_output("markov1")
       )
     )
@@ -184,7 +189,8 @@ server <- function(input, output, session) {
   
   values <- reactiveValues(table1 = NULL,
                            plotChoice = NULL,
-                           df = NULL)
+                           df = NULL,
+                           markov = NULL)
   
   data <- reactive({
     if1 = input$infile1
@@ -360,8 +366,28 @@ server <- function(input, output, session) {
     dividerVar <- values$df[,colnames(values$df) == input$markov_divider_var]
     
     m1 <- markovTransitionMatrix(values$df, statesVar = stateVar, dividerVar = dividerVar, 
-                           precision = 3, filenameToSave = "givingAFilename.html")
+                           precision = 3,
+                           titleString = input$markov_title, 
+                           subtitleString = input$markov_subtitle, 
+                           captionString = input$markov_caption, 
+                           filenameToSave = input$markov_outfile)
+    values$markov = m1$table
     m1$table
+    
+  })
+  
+  observeEvent(input$markov_save, {
+    fn = ""
+    if (".html" %in% input$markov_outfile) {
+      fn = input$markov_outfile
+    }
+    else {
+      fn = paste(input$markov_outfile, ".html", sep = "")
+    }
+    if (is.null(values$markov)) {
+      return()
+    }
+    gtsave(values$markov, fn)
   })
   
 }
