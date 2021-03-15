@@ -24,3 +24,11 @@ March 8
 - Fixed bug where changed filter had defaulted to False values, meaning that if no
   specification occurred w.r.t. filters, plots would show as empty if the filters were checked.
 - In tandem with the above item, switched filters to default value of TRUE, as it does not change anything if the user de-selects them -- only causes change when the filter itself is changed.
+
+March 14
+(Happy Pi Day!)
+- Created Markov Tab
+- Began working on gt Output -- works with unspecified dimensions; params overwrite when passed correctly, act fine otherwise.
+// To-Do: Specify gt Output dimensions
+// To-Do: Add TextInputs for information about the graphic
+// To-Do: Find way to automatically throw output to web broswer window
