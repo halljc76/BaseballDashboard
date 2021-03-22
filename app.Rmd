@@ -1,7 +1,3 @@
-```{r}
-
-```
-
 ```{r warning = FALSE, message = FALSE}
 options(shiny.maxRequestSize = 30*1024^2)
 
@@ -409,8 +405,8 @@ server <- function(input, output, session) {
     m1$table
     
   },
-  height = px(1200),
-  width = px(1200)
+  height = px(600),
+  width = px(600)
   )
   
   observeEvent(input$markov_save, {
