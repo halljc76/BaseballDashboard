@@ -1,3 +1,6 @@
+```{r}
+
+```
 
 ```{r warning = FALSE, message = FALSE}
 options(shiny.maxRequestSize = 30*1024^2)
@@ -73,37 +76,43 @@ ui <- dashboardPage(
       tabItem(tabName = "e",
               textOutput("edit_msg"),
               
-              h3("Specify Required Variables: "),
-              
-              fluidRow(
-                column(width = 4,
-                       selectInput("date_var", "Select \"Date\" Variable: ",
+              tabsetPanel(
+                tabPanel("Variables",
+                       h3("Specify Required Variables: "),
+                       fluidRow(
+                         column(3,
+                            selectInput("date_var", "Select \"Date\" Variable: ",
                                    choices = NULL),
-                       selectInput("events_var", "Select \"Events\" Variable (e.g., Single, Double, Groundout, etc.): ", choices = NULL),
-                       selectInput("description_var", "Select \"Description\" Variable (e.g., swinging-strike, hit, etc.): ", choices = NULL)
+                            selectInput("events_var", "Select \"Events\" Variable (e.g., 
+                                   Single, Double, Groundout, etc.): ", choices = NULL),
+                            selectInput("description_var", "Select \"Description\" Variable 
+                                   (e.g., swinging-strike, hit, etc.): ", choices = NULL)
+                            ),
+                         column(3,
+                           selectInput("away_team_var", "Select \"Away Team\" Variable: ",
+                                       choices = NULL),
+                           selectInput("home_team_var", "Select \"Home Team\" Variable: ",
+                                       choices = NULL),
+                           selectInput("launch_speed_var", "Select \"Launch Speed (Exit Velo)\"
+                                       Variable", choices = NULL)
+                         )
+                       )
                 ),
-                column(width = 4, offset = 1,
-                       selectInput("away_team_var", "Select \"Away Team\" Variable: ",
-                                   choices = NULL),
-                       selectInput("home_team_var", "Select \"Home Team\" Variable: ",
-                                   choices = NULL),
-                       selectInput("launch_speed_var", "Select \"Launch Speed (Exit Velo)\" Variable", choices = NULL)
+                tabPanel("Actions",
+                         h3("\n"),
+                         h3("\n"),
+                         actionButton("id_create", "Create IDs", icon = icon("asymmetrik")),
+                       actionButton("swing_matrix_create", "Create Contact & Swing Matrix 
+                                    Vars", icon = icon("bolt")),
+                       textInput("exp_filename", "Filename to Save: ", placeholder = 
+                                   "export1.csv"),
+                       actionButton("edited_table_save", "Export Table to .csv", icon = 
+                                    icon("share-alt"))
+                ),
+                tabPanel("View Edited Dataset",
+                      dataTableOutput("edited_table")
                 )
-              ),
-              fluidRow(
-                column(width = 10,
-                       actionButton("id_create", "Create IDs", icon = icon("asymmetrik")),
-                       actionButton("swing_matrix_create", "Create Contact & Swing Matrix Vars", icon = icon("bolt"))
-                )
-              ),
-              fluidRow(
-                column(width = 10,
-                       textInput("exp_filename", "Filename to Save: ", placeholder = "export1.csv"),
-                       actionButton("edited_table_save", "Export Table to .csv", icon = icon("share-alt"))
-                )
-              ),
-              
-              dataTableOutput("edited_table")
+            )
       ),
       
       tabItem(tabName = "f", 
