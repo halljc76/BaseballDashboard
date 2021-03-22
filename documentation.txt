@@ -38,3 +38,8 @@ March 15
 // To-Do: Utilize tabsetPanel UI for other tabs -- nicer to work with; more aesthetically pleasing
 // To-Do: Include raw text output that lets user know where the .html, .csv(s) have been saved.
 
+March 22 
+- Updated UI on Edit Dataset tab to tabsetPanel, tabPanel system
+// To-Do: Include raw text output for buttons that let users know the changes can be viewed    
+          in 'View Edited Dataset' tab
+
