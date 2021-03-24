@@ -43,3 +43,12 @@ March 22
 // To-Do: Include raw text output for buttons that let users know the changes can be viewed    
           in 'View Edited Dataset' tab
 
+March 23 
+// Note: As of this date, these changes are not on Github. It's not final, and I'm still 
+// working on testing kinks and other bugs in it.
+- Started working with a Trackman-based dataset
+- Added boolean to import tab to note a Trackman-derived dataset --> used in ID creation
+- Got the ID creation to work with data of a different source
+
+// To-Do: Derive a way to create user-specified "presets" for the editing tab so that 
+users don't need to re-select the same variables... every import.
