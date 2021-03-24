@@ -1,4 +1,4 @@
-```{r warning = FALSE, message = FALSE}
+```{r message=FALSE, warning=FALSE}
 options(shiny.maxRequestSize = 30*1024^2)
 
 library(shiny)
@@ -19,11 +19,15 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Homepage", tabName = "hp", icon = icon("home")),
-      menuItem("Import Dataset", tabName = "i", icon = icon("arrow-circle-up")),
-      menuItem("Edit Dataset", tabName = "e", icon = icon("pencil-ruler")),
-      menuItem("Filter Dataset", tabName = "f", icon = icon("filter")),
-      menuItem("Plots", tabName = "p", icon = icon("chart-area")),
-      menuItem("Markov Matrices", tabName = "mm", icon = icon("border-none"))
+      menuItem("Dataset Tools", icon = icon("table"),
+        menuSubItem("Import Dataset", tabName = "i", icon = icon("arrow-circle-up")),
+        menuSubItem("Edit Dataset", tabName = "e", icon = icon("pencil-ruler")),
+        menuSubItem("Filter Dataset", tabName = "f", icon = icon("filter"))
+      ),
+      menuItem("Visualization Tools", icon = icon("chart-line"),
+        menuSubItem("Plots", tabName = "p", icon = icon("chart-area")),
+        menuSubItem("Markov Matrices", tabName = "mm", icon = icon("border-none"))
+      )
     )
   ),
   
@@ -58,7 +62,7 @@ ui <- dashboardPage(
               column(width = 6, 
                      textOutput("fileIO_1"),
                      checkboxInput("header1", "Header in File?", TRUE),
-                     
+                     checkboxInput("trackman", "Is Trackman Data?", FALSE),
                      fileInput("infile1", "Choose .csv File", 
                                accept = c(".csv"))
               )
@@ -82,7 +86,9 @@ ui <- dashboardPage(
                             selectInput("events_var", "Select \"Events\" Variable (e.g., 
                                    Single, Double, Groundout, etc.): ", choices = NULL),
                             selectInput("description_var", "Select \"Description\" Variable 
-                                   (e.g., swinging-strike, hit, etc.): ", choices = NULL)
+                                   (e.g., swinging-strike, hit, etc.): ", choices = NULL),
+                            selectInput("pt_filter_var", "Select \"Pitch Type\" Variable: ",
+                                   choices = NULL),
                             ),
                          column(3,
                            selectInput("away_team_var", "Select \"Away Team\" Variable: ",
@@ -112,31 +118,32 @@ ui <- dashboardPage(
       ),
       
       tabItem(tabName = "f", 
+              h3("\n"),
               textOutput("filter_msg"),
+              h3("\n"),
               textOutput("d_in_use"),
-              
-              h2("Select Filter Variables:"),
-              
-              sidebarPanel(
-                h3("Pitch Types"),
-                selectInput("pt_filter_var", "Select \"Pitch Type\" Variable: ",
-                            choices = NULL),
-                
-                h3("Hard/Soft Contact & Swing-With-Miss"),
-                selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & Miss\" Variable: ",
-                            choices = NULL),
-                
-                
-              ),
-              
-              mainPanel(
-                h2("Pitch Type Filtering: "),
-                uiOutput("pt_filter"),
-                
-                h2("Hard/Soft Contact Filtering: "),
-                h4("Note: Make sure the imported dataset has been run through the 
-                  swingMatrixStates.R function."),
-                uiOutput("c_swm_filter")
+              h2("\n"),
+              tabsetPanel(
+                tabPanel("Select Filter Variables",
+                      h3("Hard/Soft Contact & Swing-With-Miss"),
+                      selectInput("c_swm_filter_var", "Select \"Hard/Soft Contact & 
+                                  Miss\" Variable:",choices = NULL),
+                      h3("Pitcher Name"),
+                      selectInput("pitcher_name_filter_var", "Select Pitcher (if applicable)", 
+                                  choices = NULL, multiple = FALSE)
+                         ),
+                tabPanel("Edit Filter Levels",
+                      h2("Pitch Type Filtering: "),
+                      uiOutput("pt_filter"),
+                      
+                      h2("Hard/Soft Contact Filtering: "),
+                      h4("Note: Make sure the imported dataset has been run through the 
+                        swingMatrixStates.R function."),
+                      uiOutput("c_swm_filter"),
+                      
+                      h2("Pitcher Name Filtering: "),
+                      uiOutput("pn_filter")
+                      )
               )
       ),
       
@@ -146,8 +153,10 @@ ui <- dashboardPage(
               fluidRow(
                 column(3,
                        h3("Use Filters?"),
-                       checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", value = TRUE),
-                       checkboxInput("c_swm_filter_bool", "Use Contact Filter?", value = TRUE),
+                       checkboxInput("pt_filter_bool", "Use Pitch Type Filter?", 
+                                     value = FALSE),
+                       checkboxInput("c_swm_filter_bool", "Use Contact Filter?", 
+                                     value = FALSE),
                 ),
                 column(3,
                        selectInput("plot_dropdown", "Select Plot Type: ", 
@@ -231,7 +240,8 @@ server <- function(input, output, session) {
     df <- read.csv(if1$datapath, header = input$header1)
     
     updateSelectInput(session, "pt_filter_var", choices = names(df))
-    updateSelectInput(session, "c_swm_filter_var", choices = names(df))    
+    updateSelectInput(session, "c_swm_filter_var", choices = names(df)) 
+    updateSelectInput(session, "pitcher_name_filter_var", choices = names(df)) 
     updateSelectInput(session, "plot_x", choices = names(df))
     updateSelectInput(session, "plot_y", choices = names(df))
     
@@ -263,16 +273,24 @@ server <- function(input, output, session) {
       d = values$df
     }
     
+    b = 0
+    if (input$trackman) {
+      b = 1
+    }
+    
     values$df = idCreator(d, 
                           d[,colnames(d) == input$date_var],
                           d[,colnames(d) == input$home_team_var],
                           d[,colnames(d) == input$away_team_var],
-                          d[,colnames(d) == input$events_var])
+                          d[,colnames(d) == input$events_var],
+                          b)
     
-    updateSelectInput(session, "pt_filter_var", choices = names(values$df))
     updateSelectInput(session, "c_swm_filter_var", choices = names(values$df)) 
     updateSelectInput(session, "plot_x", choices = names(values$df))
     updateSelectInput(session, "plot_y", choices = names(values$df))
+    
+    updateSelectInput(session, "markov_states_var", choices = names(df))
+    updateSelectInput(session, "markov_divider_var", choices = names(df))
   })
   
   observeEvent(input$swing_matrix_create, {
@@ -290,6 +308,13 @@ server <- function(input, output, session) {
                                   d[,colnames(d) == input$description_var],
                                   d[,colnames(d) == input$pt_filter_var],
                                   90.0, 1.0)
+    
+    updateSelectInput(session, "c_swm_filter_var", choices = names(values$df)) 
+    updateSelectInput(session, "plot_x", choices = names(values$df))
+    updateSelectInput(session, "plot_y", choices = names(values$df))
+    
+    updateSelectInput(session, "markov_states_var", choices = names(df))
+    updateSelectInput(session, "markov_divider_var", choices = names(df))
   })
   
   observeEvent(input$edited_table_save, {
@@ -334,6 +359,14 @@ server <- function(input, output, session) {
     contactChoices <- unique(values$df[,colnames(values$df) == input$c_swm_filter_var])
     checkboxGroupInput("c_swm_filter", "Select Contact State(s): ", choices = contactChoices,
                        selected = contactChoices)
+  })
+  
+  output$pn_filter <- renderUI({
+    if (is.null(values$df)) {
+      values$df = data()
+    }
+    pitchers <- unique(values$df[,colnames(values$df) == input$c_swm_filter_var])
+    checkboxGroupInput("pn_filter", "Select Pitcher(s): ", choices = pitchers)
   })
   
   output$infile1_dt <- renderDataTable({
