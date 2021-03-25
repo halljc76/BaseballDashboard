@@ -48,11 +48,6 @@ ui <- dashboardPage(
                    user-friendly."),
                 
                 h2("To-Do: "),
-                #h4("Import w/ File Input. (Completed at basic level.)"),
-                #h4("Scrollable Visualization w/ DT, formattable (Completed)"),
-                #h4("Dynamic Filtering (Doing now...ish)"),
-                #h4("Univariate and Bivariate Plots w/ ggplot2"),
-                #h4("Markov Chain Matrix widget"),
                 h4("Presets"),
                 h4("Strikezone Plots for Contact, Progression, by Pitch Type"),
                 h4("Include Other Project Functions Datasets can be run through."),
@@ -241,10 +236,10 @@ server <- function(input, output, session) {
                            plotChoice = NULL,
                            df = NULL,
                            markov = NULL,
-                           markov_title = input$markov_title,
-                           markov_subtitle = input$markov_subtitle,
-                           markov_caption = input$markov_caption,
-                           markov_outfile = input$markov_outfile)
+                           markov_title = NULL,
+                           markov_subtitle = NULL,
+                           markov_caption = NULL,
+                           markov_outfile = NULL)
   
   data <- reactive({
     if1 = input$infile1
@@ -470,6 +465,11 @@ server <- function(input, output, session) {
     
     stateVar <- df[,colnames(df) == input$markov_states_var]
     dividerVar <- df[,colnames(df) == input$markov_divider_var]
+    
+    values$markov_title = input$markov_title
+    values$markov_subtitle = input$markov_subtitle
+    values$markov_caption = input$markov_caption
+    values$markov_outfile = input$markov_outfile
     
     m1 <- markovTransitionMatrix(values$df, statesVar = stateVar, dividerVar = dividerVar, 
                                  precision = 3,
