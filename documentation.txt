@@ -52,3 +52,10 @@ March 23
 
 // To-Do: Derive a way to create user-specified "presets" for the editing tab so that 
 users don't need to re-select the same variables... every import.
+
+// March 24
+- Finalized baseline MarkovDev stuff, merged branch to master in Github, repo.
+- Added pitcher filtering (may change this to dropdown later)
+
+// To-Do: Give the filter checkboxes in 'Plots' their own places in the 'Filter Dataset' tab
+// To-Do: Add preset functionality (may make a branch for this).
