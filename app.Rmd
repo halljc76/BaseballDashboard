@@ -59,7 +59,7 @@ ui <- dashboardPage(
               column(width = 6, 
                      textOutput("fileIO_1"),
                      checkboxInput("header1", "Header in File?", TRUE),
-                     checkboxInput("trackman", "Is Trackman Data?", FALSE),
+                     checkboxInput("trackman", "Is Trackman Data?", TRUE),
                      fileInput("infile1", "Choose .csv File", 
                                accept = c(".csv"))
               )
@@ -233,6 +233,7 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   
   values <- reactiveValues(table1 = NULL,
+                           presetChoice = NULL,
                            plotChoice = NULL,
                            df = NULL,
                            markov = NULL,
@@ -240,6 +241,15 @@ server <- function(input, output, session) {
                            markov_subtitle = NULL,
                            markov_caption = NULL,
                            markov_outfile = NULL)
+  
+  observeEvent(input$trackman, {
+    if (input$trackman) {
+      values$presetChoice = "tagTM"
+    }
+    else {
+      values$presetChoice = "baseballr"
+    }
+  })
   
   data <- reactive({
     if1 = input$infile1
@@ -249,18 +259,24 @@ server <- function(input, output, session) {
     
     df <- read.csv(if1$datapath, header = input$header1)
     
-    updateSelectInput(session, "pt_filter_var", choices = names(df))
+    idxs = presetHandler(if1$datapath, "./presets.txt", values$presetChoice)$idxs
+    
+    updateSelectInput(session, "pt_filter_var", choices = names(df), selected = names(df)[idxs[4]])
     updateSelectInput(session, "c_swm_filter_var", choices = names(df)) 
     updateSelectInput(session, "pn_filter_var", choices = names(df)) 
     updateSelectInput(session, "plot_x", choices = names(df))
     updateSelectInput(session, "plot_y", choices = names(df))
     
-    updateSelectInput(session, "date_var", choices = names(df))
-    updateSelectInput(session, "home_team_var", choices = names(df))    
-    updateSelectInput(session, "away_team_var", choices = names(df))
-    updateSelectInput(session, "events_var", choices = names(df))
-    updateSelectInput(session, "description_var", choices = names(df))
-    updateSelectInput(session, "launch_speed_var", choices = names(df))
+    updateSelectInput(session, "date_var", choices = names(df), selected = names(df)[idxs[1]])
+    updateSelectInput(session, "home_team_var", choices = names(df), selected = 
+                        names(df)[idxs[6]])    
+    updateSelectInput(session, "away_team_var", choices = names(df), selected = 
+                        names(df)[idxs[5]])
+    updateSelectInput(session, "events_var", choices = names(df), selected = names(df)[idxs[2]])
+    updateSelectInput(session, "description_var", choices = names(df), selected = 
+                        names(df)[idxs[3]])
+    updateSelectInput(session, "launch_speed_var", choices = names(df), selected = 
+                        names(df)[idxs[7]])
     
     updateSelectInput(session, "markov_states_var", choices = names(df))
     updateSelectInput(session, "markov_divider_var", choices = names(df))
